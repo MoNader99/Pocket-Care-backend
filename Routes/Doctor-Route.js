@@ -18,17 +18,28 @@ const upload = multer({
     storage: storage
     })
 
-
-
-// Gets back all the doctors`
-// router.get('/', DoctorController.GetAllDoctors)
-
 // Doctor Sign up
-router.post('/', DoctorController.CreateNewDoctor )
-// router.post('/',upload.single ('upload') )
+router.post('/signup',async (req,res) => {
+  try{
+  
+      let exists = await DoctorController.IsDoctorExists(req,res);
+      if (!exists) {
+      console.log("Doctor can be added")
+      return DoctorController.CreateNewDoctor(req,res);
+      }
+  } catch (err){
+          console.error(err.message)
+          res.status(500).send("Server Error")
+      }
+  })
 
-// Get patients connected to each doctor
-router.get('/:doctorId', DoctorController.GetPatientDataConnectedToDoctor)
+
+// Doctor Sign in
+router.post('/login', DoctorController.SignInDoctor)
+
+// Doctor change password
+router.post('/changepassword', DoctorController.ChangePassowrd)
+
 
 // Doctor creating new patient 
 router.post('/newpatient', DoctorController.CreateNewPatient)

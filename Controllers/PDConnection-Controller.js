@@ -16,15 +16,6 @@ var tmr = (tomorrow.getFullYear()+'-'+(tomorrow.getMonth()+1)+'-'+tomorrow.getDa
 var Tm = new Date(tmr)
 
 
-// ---------------------------------------- Get All Connections between doctors and patients -------------------------------------------
-const GetAllConnections = async (req,res)=> {
-    try {
-        const connection = await PDConnection.find(); 
-        res.json(connection)
-    } catch (error) {
-        res.json({message: "err"})  
-    }
-}
 
 // ---------------------------- Create connection between doctor and patient and make appointment date today -------------------------------------
 const CreateNewConnection = async (req,res) => {
@@ -409,7 +400,7 @@ const getPatientsByAppointmentDate = async (req,res) =>{
   }
 }
 
-exports.GetAllConnections = GetAllConnections;
+
 exports.CreateNewConnection = CreateNewConnection;
 exports.getDoctorConnections = getDoctorConnections;
 exports.getPatientDataOfToday = getPatientDataOfToday

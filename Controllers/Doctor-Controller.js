@@ -1,34 +1,14 @@
 const Clinic = require("../models/Clinic");
 const Doctor = require("../models/Doctor");
 const HttpError = require("../models/HTTP-Error");
-
-// To retrieve all doctors
-const GetAllDoctors = async (req,res)=> {
-    try {
-        const doctor = await Doctor.find(); // to find out all the posts in dB
-        res.json(doctor)
-    } catch (error) {
-        res.json({message: "err"})  
-    }
-}
-const GetPatientDataConnectedToDoctor =  (req,res)=> {
-    try {
-        Doctor.findOne({"_id": req.params.doctorId })
-        .populate({
-           path: "Patients", // populate blogs
-        //    populate: {
-        //       path: "comments" // in blogs, populate comments
-        //    }
-        })
-        .then(user => {
-            res.json(user); 
-    })} catch (error) {
-        res.json({message: "err"})  
-    }
-}
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 
-// Create New Doctor
+
+
+
+//----------------------------------------------- Create New Doctor --------------------------------------------------------
 const CreateNewDoctor = async (req, res) => {
     const CreatedDoctor = new Doctor(
       ({
@@ -76,26 +56,45 @@ const CreateNewDoctor = async (req, res) => {
         // return true;
       }
       console.log(Password, doctor.Password);
-      const isMatch = await bcrypt.compare(Password, doctor.Password);
-  
-      if (isMatch) {
-        const payload = {
-          user: {
-            id: doctor.id,
-          },
-        };
-        jwt.sign(payload, "MySecretToken", (err, token) => {
-        //   if (err) throw err;
-          res.json({ token });
-        });
-      } else {
-        res.status(400).send("Invalid credentials");
-      }
+     if (Password === doctor.Password)
+     {
+       res.json({"DoctorID" : doctor._id})
+     }
+     else {
+       throw new Error ("Password is incorrect")
+     }
+     
     } catch (err) {
-      console.error(err.message);
-      res.status(404).json({ message: err });
+      res.json(err.message);
+      // res.status(404).json({ message: err });
     }
   };
+
+// ------------------------------------------- Doctor Changes his password ---------------------------------------
+  const ChangePassowrd = async (req,res) => {
+    try {
+      const DoctorData = await Doctor.findById(req.body.doctorId)
+      console.log(DoctorData)
+      let SavedDoctor
+
+      if(DoctorData.Password === req.body.oldPassword){
+        const filter = { _id: req.body.doctorId };
+        const update = { Password: req.body.newPassword };
+         SavedDoctor = await Doctor.findOneAndUpdate(filter, update, {
+          new: true
+        });
+       
+      }
+      else {
+        throw new Error ("Old password is Incorrect") 
+      }
+        res.json(SavedDoctor)
+      
+    } catch (error) {
+      res.json ({message: error.message})
+      
+    }
+  }
 
 // ---------------------------------------------- Doctor Create New patient profile -------------------------------------------
 const CreateNewPatient = async (req,res) => {
@@ -137,6 +136,7 @@ const CreateNewPatient = async (req,res) => {
         
         
     } catch (error) {
+      res.json ({message: err})
         
     }
 }
@@ -209,10 +209,10 @@ const getDoctorDataWithClinic = async (req,res) =>{
 
 
 
-exports.GetAllDoctors = GetAllDoctors;
+
 exports.SignInDoctor = SignInDoctor
-exports.CreateNewDoctor = CreateNewDoctor;
-exports.GetPatientDataConnectedToDoctor = GetPatientDataConnectedToDoctor
+exports.CreateNewDoctor = CreateNewDoctor
+exports.ChangePassowrd = ChangePassowrd
 exports.CreateNewPatient = CreateNewPatient
 exports.getDoctorDataWithClinic = getDoctorDataWithClinic
 

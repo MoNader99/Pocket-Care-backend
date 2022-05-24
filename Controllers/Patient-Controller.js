@@ -2,6 +2,8 @@ const Patient = require("../models/Patient");
 const HttpError = require("../models/Http-Error")
 const PDConnection = require("../models/PDConnection");
 const MedicalProfile = require("../models/MedicalProfile");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 // // To retrieve all patients
 // const GetAllPatients = async (req,res)=> {
@@ -85,33 +87,102 @@ const CreateNewPatient = async (req,res) => {
       Address,
       }
           = req.body);
-  try{
 
+    const CreatedPatientMedicalProfile = new MedicalProfile ({
+      Weight,
+      Height,
+      BloodGroup,
+      ChronicDiseases,
+      ChronicMedications,
+      PastSurgeries,
+      Allergies,
+      FamilyHistory,
+      SmokingHabits,
+      ActivityLevel,
+      AlcoholConsumption,
+      Occupation,
+      }
+          = req.body);
+ 
+
+ 
+          try{
 
         // hashing the password
         let Password = req.body.Password;
         const salt = await bcrypt.genSalt(10);
         CreatedPatient.Password = await bcrypt.hash(Password,salt);
 
-        const SavedPatient = await CreatedPatient.save()
+        // const SavedPatient = await CreatedPatient.save()
         console.log("patient is saved")
 
 
-        // create & send the secret token
-        const payload = {
-          user: {
-            id: SavedPatient.id
-          }
-        }
-        jwt.sign(payload,"MySecretToken", (err,token) =>{
-          if (err) throw err;
-          res.json({token})
-        })
-      } catch (err){
-          res.json ({message: err})
-      }
+      //   // create & send the secret token
+      //   const payload = {
+      //     user: {
+      //       id: SavedPatient.id
+      //     }
+      //   }
+      //   jwt.sign(payload,"MySecretToken", (err,token) =>{
+      //     if (err) throw err;
+      //     res.json({token})
+      //   })
+      // } catch (err){
+      //     res.json ({message: err})
+      // }
+
+        CreatedPatientMedicalProfile.PatientID = CreatedPatient._id 
+        await CreatedPatient.save()
+        await CreatedPatientMedicalProfile.save()
+        res.json({"PatientId": Patient._id})
+         
+       } catch (error) {
+         
+       }
 }
 
+// check if the patient exists before sign up
+const IsPatientExists = async (req,res) =>{
+  try{
+        const { Email} = req.body;
+        let patient = await Patient.findOne({Email});
+
+        if (patient){
+          res.status(400).json({message: "this email already exist"})
+          return true; 
+        }
+        return false
+  } catch(err){
+    res.status(404).json({message: err})  
+
+  }
+}
+
+// ------------------------------------------- Patient Changes his password ---------------------------------------
+const ChangePassowrd = async (req,res) => {
+  try {
+    const PatientData = await Patient.findById(req.body.patientId)
+    console.log(PatientData)
+    let SavedPatient
+
+    if(PatientData.Password === req.body.oldPassword){
+      const filter = { _id: req.body.patientId };
+      const update = { Password: req.body.newPassword };
+       SavedPatient = await Patient.findOneAndUpdate(filter, update, {
+        new: true
+      });
+     
+    }
+    else {
+      throw new Error ("Old password is Incorrect") 
+    }
+      res.json(SavedPatient)
+    
+  } catch (error) {
+    res.json ({message: error.message})
+    
+  }
+}
 // ---------------------------------------------- Get Patient data with Medical Profile -----------------------------------------------------
 const getPatientData = async (req,res) =>{
   
@@ -202,7 +273,9 @@ const EditPatientData = async (req,res) => {
 
 exports.SignInPatient = SignInPatient;
 exports.CreateNewPatient = CreateNewPatient;
+exports.ChangePassowrd = ChangePassowrd;
 exports.getPatientData = getPatientData;
 exports.DeletePatient = DeletePatient;
 exports.EditPatientData = EditPatientData
+exports.IsPatientExists = IsPatientExists
 
