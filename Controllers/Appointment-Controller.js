@@ -69,6 +69,32 @@ const GetPatientDataConnected = async (req,res)=> {
 //     }
 // }
 
+const GetLastDoctors = async (req,res) => {
+   let LastDoctors
+   let uniqueChars
+    try {
+    LastDoctors = await Appointment.find({ 
+        "PatientID": req.params.patientid 
+   }, )
+   const query ={"PatientID": req.params.patientid }
+   const PatientAppointments = await Appointment.find(query).sort({AppointmentDate: -1});
+//    for (i=0; i< PatientAppointments.length; i++){
+//        if (PatientAppointments[i].DoctorID === PatientAppointments[i+1].DoctorID) {
+           
+//        }
+  
+//    }
+   res.json(PatientAppointments)
+       
+   } catch (error) {
+    res.status(404).json({message: error.message})
+
+       
+   }
+   
+}
+
 exports.GetAllAppointments = GetAllAppointments;
 exports.createNewAppointment = createNewAppointment;
 exports.GetPatientDataConnected = GetPatientDataConnected
+exports.GetLastDoctors = GetLastDoctors

@@ -41,7 +41,7 @@ const GetAllPatientPrescriptions = async (req,res) =>{
             "$or": [
                 { "PatientID": req.params.patientId}
             ]
-            },'-_id -DoctorID -PatientID -AppointmentDate -FollowUpDate')
+            },'-_id -DoctorID -AppointmentDate -FollowUpDate')
 
         console.log(searchedAppointment)
 
@@ -49,8 +49,10 @@ const GetAllPatientPrescriptions = async (req,res) =>{
         let PrescriptionsData = []
         for (i=0; i<searchedAppointment.length;i++)
         {
+            if(searchedAppointment[i].PrescriptionID !== '') {
             Data = await Prescription.findById(searchedAppointment[i].PrescriptionID)
             PrescriptionsData.push(Data)
+            }
         }
         res.json(PrescriptionsData)
 

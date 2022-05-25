@@ -33,7 +33,7 @@ const PatientSchema = new mongoose.Schema({
   Password: {
     type: String, 
     minlength: 6,
-    required: true,
+   
 
   },
   MobileNumber: {

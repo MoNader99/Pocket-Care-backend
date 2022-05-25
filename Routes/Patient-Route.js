@@ -29,7 +29,8 @@ router.post('/changepassword', PatientController.ChangePassowrd)
 router.post('/',PatientController.CreateNewPatient )
 router.get('/patientdata/:patientId', PatientController.getPatientData)
 router.patch('/editdata/:patientId', PatientController.EditPatientData)
-
+router.get('/getmedications/:patientId', PatientController.GetPatientMedications)
+router.post('/findbyspeciality', PatientController.FindDoctorBySPeciality)
 // router.delete("/:patientId", PatientController.DeletePatient)
 
 module.exports = router

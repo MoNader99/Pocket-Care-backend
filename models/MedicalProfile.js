@@ -2,8 +2,7 @@ const mongoose = require("mongoose");
 
 const MedicalProfileSchema = new mongoose.Schema({
   PatientID: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "patient",
+    type: String,
   },
   Weight: {
     type: String,

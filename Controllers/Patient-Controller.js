@@ -4,39 +4,9 @@ const PDConnection = require("../models/PDConnection");
 const MedicalProfile = require("../models/MedicalProfile");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const Medication = require("../models/Medication");
+const Doctor = require("../models/Doctor");
 
-// // To retrieve all patients
-// const GetAllPatients = async (req,res)=> {
-//     try {
-//         const patient = await Patient.find(); // to find out all the posts in dB
-//         res.json(patient)
-//     } catch (error) {
-//       // return next (new HttpError ("Couldn't find any patients", 404))
-//         res.status(404).json({message: "Couldn't find any patients"})  
-//     }
-// }
-
-// Create New Patient
-// const CreateNewPatient = async (req,res) => {
-//     const CreatedPatient = new Patient ({
-//         FirstName,
-//         LastName,
-//         Age,
-//         Gender,
-//         Birthdate,
-//         Email,
-//         Password,
-//         MobileNumber,
-//         Address,
-//         }
-//             = req.body);
-//     try{
-//         const SavedPatient = await CreatedPatient.save()
-//         res.json(SavedPatient)
-//         } catch (err){
-//             res.json ({message: err})
-//         }
-// }
 
 // -------------------------------------------- Sign in Patient -----------------------------------------
 const SignInPatient = async (req,res) => {
@@ -60,7 +30,7 @@ const SignInPatient = async (req,res) => {
   }
   jwt.sign(payload,"MySecretToken", (err,token) =>{
     if (err) throw err;
-    res.json({token})
+    res.json({"PatientId" : patient._id})
   })
 
   }else{
@@ -134,9 +104,10 @@ const CreateNewPatient = async (req,res) => {
         CreatedPatientMedicalProfile.PatientID = CreatedPatient._id 
         await CreatedPatient.save()
         await CreatedPatientMedicalProfile.save()
-        res.json({"PatientId": Patient._id})
+        res.status(200).json({message: "Sign up process succeed"})
          
        } catch (error) {
+         res.status(404).json(error.message)
          
        }
 }
@@ -271,6 +242,65 @@ const EditPatientData = async (req,res) => {
  }
 }
 
+//----------------------------------------------- Get Patient Medications --------------------------------------------------------
+const GetPatientMedications = async (req,res) => {
+let PatientMedications
+  try {
+    
+     PatientMedications = await Medication.find({ "$or": [
+      { "PatientID": req.params.patientId }
+  ]
+  }, '-PatientID' )
+  if (PatientMedications.length == 0 ) {
+   res.status(404).json("Patient Id is not found")
+
+  }
+  else {
+  res.json(PatientMedications)
+  }
+    
+  } catch (error) {
+    res.status(404).json(error.message)
+  }
+
+}
+
+// -------------------------------------------- Find Doctor By speciality -------------------------------------------------------------
+const FindDoctorBySPeciality = async (req,res) => {
+  let DoctorSpeciality
+  let ExistedDoctors = []
+  let DoctorsResult = []
+  try {
+   
+    DoctorSpeciality = await Doctor.find({ 
+       "AreaOfPractice": req.body.speciality 
+  
+  }, '-Password ')
+
+
+  if (DoctorSpeciality.length == 0 ) {
+    res.status(404).json("No doctor with this speciality")
+   }
+   else {
+
+    for (i=0; i<DoctorSpeciality.length; i++){
+      ExistedDoctors.push(DoctorSpeciality[i])
+      DoctorsResult.push(ExistedDoctors[i]._id)
+    }
+    res.json({"DoctorID": DoctorsResult})
+   }
+    
+  } catch (error) {
+    res.status(404).json(error.message)
+    
+  }
+
+}
+
+
+
+
+
 exports.SignInPatient = SignInPatient;
 exports.CreateNewPatient = CreateNewPatient;
 exports.ChangePassowrd = ChangePassowrd;
@@ -278,4 +308,6 @@ exports.getPatientData = getPatientData;
 exports.DeletePatient = DeletePatient;
 exports.EditPatientData = EditPatientData
 exports.IsPatientExists = IsPatientExists
+exports.GetPatientMedications = GetPatientMedications
+exports.FindDoctorBySPeciality = FindDoctorBySPeciality
 

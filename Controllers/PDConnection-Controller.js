@@ -20,61 +20,52 @@ var Tm = new Date(tmr)
 // ---------------------------- Create connection between doctor and patient and make appointment date today -------------------------------------
 const CreateNewConnection = async (req,res) => {
 
-    const CreatedConnection = new PDConnection ({
-        DoctorID,
-        PatientID
-    }
-        = req.body);
-        let patient;
-        let doctor;
-        try {
-            patient = await Patient.findById(PatientID)
-            doctor = await Doctor.findById(DoctorID)
-            if (!(patient && doctor))
-            {
-                throw Error ('there is no user with this ID')
-                
-            } 
-        } catch (err) {
-            res.json ({message: err.message})
-            return 
-        }
+  const CreatedConnection = new PDConnection ({
+      DoctorID,
+      PatientID
+  }
+      = req.body);
+      let patient;
+      let doctor;
+      try {
+          patient = await Patient.findById(PatientID)
+          doctor = await Doctor.findById(DoctorID)
+          if (!(patient && doctor))
+          {
+              throw Error ('there is no user with this ID')
+              
+          } 
+      } catch (err) {
+          res.json ({message: err.message})
+          return 
+      }
+      try{
+          const result = await PDConnection.count({"DoctorID": DoctorID,"PatientID": PatientID})
+          const CreatedAppointment = new Appointment ({
+              DoctorID,
+              PatientID,
+              PrescriptionID,
+              AppointmentDate, 
+              FollowUpDate} 
+              = {DoctorID, PatientID,"PrescriptionID" : "", "AppointmentDate": Td, "FollowUpDate": Tm });
 
-        try{
-
-            try{
-                const resultDoctor = await PDConnection.exists({ DoctorID: DoctorID })
-                const resultPatient = await PDConnection.exists({ PatientID: PatientID })
-
-                if ((resultDoctor && resultPatient))
-            {
-                throw Error ('Connection already exists')
-                
-            } 
             
-            }catch (err){
-                res.json ({message: err.message})
-                return
-            }
-            const CreatedAppointment = new Appointment ({
-                DoctorID,
-                PatientID,
-                PrescriptionID,
-                AppointmentDate, 
-                FollowUpDate} 
-                = {DoctorID, PatientID,"PrescriptionID" : "", "AppointmentDate": Td, "FollowUpDate": Tm });
-
-
-
-              const SavedConnection = await CreatedConnection.save()
+            if (result>=1){
               const SavedAppointment = await CreatedAppointment.save()
-              res.json({SavedConnection, SavedAppointment})
-
-            } catch (err){
-                res.json ({message: err.message})
-                return
+              res.json({SavedAppointment})
             }
+            else{
+              const SavedAppointment = await CreatedAppointment.save()
+              const SavedConnection = await CreatedConnection.save()
+              res.json({SavedConnection, SavedAppointment})
+            }
+          
+          } catch (err){
+              res.json ({message: err.message})
+              return
+          }
 }
+
 
 
 // ----------------------------------------------- Get patients data connected to each doctor ------------------------------------------------
